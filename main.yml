@@ -1,0 +1,66 @@
+# usage:
+# ansible-playbook 1.yml --extra-vars "host=test os=Windows hostgroup=test ip=1.1.1.1"
+# hostgroup: Nagios hostgroup
+# host: Nagios host
+# os: Linux or Windows
+# ip: IP address of monitoring machine
+
+---
+- name: Add to Nagios
+  hosts: 192.168.2.18
+  vars:
+    hostgroup: ""
+    host: ""
+    os: "Ubuntu linux"
+    ip: ""
+  become: true
+
+  tasks:
+    - name: Test for line
+      shell: cat /usr/local/nagios/etc/objects/hostgroups.cfg | grep -w {{ hostgroup }} | wc -l
+      register: host_group
+
+    - debug: msg="{{host_group.stdout}}"
+
+    - name: "Add host group to Nagios"
+      blockinfile:
+        dest: /usr/local/nagios/etc/objects/hostgroups.cfg
+        marker: "## added by ansible configuration"
+        block: |
+          define hostgroup {
+          hostgroup_name  {{ hostgroup }}
+          alias           {{ hostgroup }}
+          }
+        #insertafter: EOF
+        state: present
+      when: host_group.stdout == "0"
+
+    - name: "Copy Linux hosts config file"
+      command: cp /usr/local/nagios/etc/objects/linux.cfg /usr/local/nagios/etc/objects/{{ host }}.cfg
+      when: "'linux' in os|lower"
+
+    - name: "Replace host - Linux"
+      replace:
+        path: /usr/local/nagios/etc/objects/{{ host }}.cfg
+        regexp: "linux"
+        replace: "{{ host }}"
+      when: "'linux' in os|lower"
+
+    - name: "Replace host groups - Linux"
+      replace:
+        path: /usr/local/nagios/etc/objects/{{ host }}.cfg
+        regexp: "linux-servers"
+        replace: "{{ hostgroup }}"
+      when: "'linux' in os|lower"
+
+    - name: "Replace IP - Linux"
+      replace:
+        path: /usr/local/nagios/etc/objects/{{ host }}.cfg
+        regexp: "192.168.1.20"
+        replace: "{{ ip }}"
+      when: "'linux' in os|lower"
+
+    - name: "Restart nagios"
+      service:
+        name: nagios
+        state: restarted

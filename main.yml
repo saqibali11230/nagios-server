@@ -1,9 +1,30 @@
 # usage:
-# ansible-playbook 1.yml --extra-vars "host=test os=Windows hostgroup=test ip=1.1.1.1"
-# hostgroup: Nagios hostgroup
+# ansible-playbook 1.yml --extra-vars "host=test ip=1.1.1.1"
 # host: Nagios host
-# os: Linux or Windows
 # ip: IP address of monitoring machine
+
+#/usr/local/nagios/etc/hosts
+#ESXi host WITCHDOCTOR.cfg
+
+#define host {
+#    host_name                ESXi host PALADIN
+#    use                      xiwizard_generic_host
+#    address                  paladin.corp.mutualink.net
+#    max_check_attempts       5
+#    check_interval           5
+#    retry_interval           1
+#    check_period             xi_timeperiod_24x7
+#    contacts                 IT Alerts
+#    notification_interval    60
+#    notification_period      xi_timeperiod_24x7
+#    icon_image               vmware.png
+#    statusmap_image          vmware.png
+#    _xiwizard                vmware
+#    register                 1
+#}
+
+
+
 
 ---
 - name: Add to Nagios
@@ -11,54 +32,24 @@
   vars:
     hostgroup: ""
     host: ""
-    os: "Ubuntu linux"
     ip: ""
   become: true
 
   tasks:
-    - name: Test for line
-      shell: cat /usr/local/nagios/etc/objects/hostgroups.cfg | grep -w {{ hostgroup }} | wc -l
-      register: host_group
-
-    - debug: msg="{{host_group.stdout}}"
-
-    - name: "Add host group to Nagios"
-      blockinfile:
-        dest: /usr/local/nagios/etc/objects/hostgroups.cfg
-        marker: "## added by ansible configuration"
-        block: |
-          define hostgroup {
-          hostgroup_name  {{ hostgroup }}
-          alias           {{ hostgroup }}
-          }
-        #insertafter: EOF
-        state: present
-      when: host_group.stdout == "0"
-
     - name: "Copy Linux hosts config file"
-      command: cp /usr/local/nagios/etc/objects/linux.cfg /usr/local/nagios/etc/objects/{{ host }}.cfg
-      when: "'linux' in os|lower"
+      command: cp /usr/local/nagios/etc/hosts/ESXi host WITCHDOCTOR.cfg /usr/local/nagios/etc/objects/{{ host }}.cfg
 
     - name: "Replace host - Linux"
       replace:
         path: /usr/local/nagios/etc/objects/{{ host }}.cfg
-        regexp: "linux"
+        regexp: "ESXi host PALADIN"
         replace: "{{ host }}"
-      when: "'linux' in os|lower"
-
-    - name: "Replace host groups - Linux"
-      replace:
-        path: /usr/local/nagios/etc/objects/{{ host }}.cfg
-        regexp: "linux-servers"
-        replace: "{{ hostgroup }}"
-      when: "'linux' in os|lower"
 
     - name: "Replace IP - Linux"
       replace:
         path: /usr/local/nagios/etc/objects/{{ host }}.cfg
-        regexp: "192.168.1.20"
+        regexp: "paladin.corp.mutualink.net"
         replace: "{{ ip }}"
-      when: "'linux' in os|lower"
 
     - name: "Restart nagios"
       service:

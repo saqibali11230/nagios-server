@@ -41,13 +41,13 @@
 
     - name: "Replace host - Linux"
       replace:
-        path: /usr/local/nagios/etc/objects/{{ host }}.cfg
+        path: /usr/local/nagios/etc/hosts/{{ host }}.cfg
         regexp: "ESXi host PALADIN"
         replace: "{{ host }}"
 
     - name: "Replace IP - Linux"
       replace:
-        path: /usr/local/nagios/etc/objects/{{ host }}.cfg
+        path: /usr/local/nagios/etc/hosts/{{ host }}.cfg
         regexp: "paladin.corp.mutualink.net"
         replace: "{{ ip }}"
 

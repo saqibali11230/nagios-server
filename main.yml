@@ -1,5 +1,5 @@
 # usage:
-# ansible-playbook 1.yml --extra-vars "host=test ip=1.1.1.1"
+# ansible-playbook main.yml --extra-vars "host=test ip=1.1.1.1"
 # host: Nagios host
 # ip: IP address of monitoring machine
 
@@ -37,7 +37,7 @@
 
   tasks:
     - name: "Copy Linux hosts config file"
-      command: cp /usr/local/nagios/etc/hosts/ESXi host WITCHDOCTOR.cfg /usr/local/nagios/etc/objects/{{ host }}.cfg
+      command: cp /usr/local/nagios/etc/hosts/ESXi\ host\ WITCHDOCTOR.cfg /usr/local/nagios/etc/hosts/{{ host }}.cfg
 
     - name: "Replace host - Linux"
       replace:
